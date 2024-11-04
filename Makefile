@@ -96,8 +96,8 @@ build:
 ## generate: generate all necessary code
 .PHONY: generate
 generate:
-	$(TEMP_BIN)/oapi-codegen --config=oapi_server.config.yaml api/openapi/post/v1/api.yaml
-	$(TEMP_BIN)/oapi-codegen --config=oapi_models.config.yaml api/openapi/post/v1/api.yaml
+	$(TEMP_BIN)/oapi-codegen --config=oapi_server.config.yaml api/openapi/relation/v1/api.yaml
+	$(TEMP_BIN)/oapi-codegen --config=oapi_models.config.yaml api/openapi/relation/v1/api.yaml
 
 ## clean: clean all temporary files
 .PHONY: clean
