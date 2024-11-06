@@ -1,13 +1,13 @@
 # ==============================================================================
 # Define dependencies
 
-BASE_IMAGE_NAME            := meower/service
-
-RELATION_SERVICE_VERSION   := 0.1.0
+SERVICE_VERSION            := 0.1.0
+SERVICE_NAME               := relation-service
 BUILD_VERSION              ?= $(shell git symbolic-ref HEAD 2> /dev/null | cut -b 12-)-$(shell git log --pretty=format:\"%h\" -1)
 BUILD_DATE                 ?= $(shell date +%FT%T%z)
 
-RELATION_IMAGE             := $(BASE_IMAGE_NAME)/relation:$(RELATION_SERVICE_VERSION)
+BASE_IMAGE                 := meower/service
+IMAGE                      := $(BASE_IMAGE)/relation:$(SERVICE_VERSION)
 
 OAPI_CODEGEN_VERSION       := 2.4.1
 GOLANGCI_LINT_VERSION      := 1.61.0
@@ -22,7 +22,7 @@ TEMP_BIN                   := ${TEMP_DIR}/bin
 PROJECT_PKG                := github.com/Karzoug/meower-relation-service
 
 LDFLAGS += -s -w
-LDFLAGS += -X ${PROJECT_PKG}/pkg/buildinfo.buildVersion=${BUILD_VERSION} -X ${PROJECT_PKG}/pkg/buildinfo.buildDate=${BUILD_DATE} -X ${PROJECT_PKG}/pkg/buildinfo.serviceVersion=$(RELATION_SERVICE_VERSION)
+LDFLAGS += -X ${PROJECT_PKG}/pkg/buildinfo.buildVersion=${BUILD_VERSION} -X ${PROJECT_PKG}/pkg/buildinfo.buildDate=${BUILD_DATE} -X ${PROJECT_PKG}/pkg/buildinfo.serviceVersion=$(SERVICE_VERSION)
 
 # ==================================================================================== #
 # HELPERS
@@ -123,8 +123,10 @@ dev-install-deps:
 service:
 	docker build \
 		-f build/dockerfile.service \
-		-t $(RELATION_IMAGE) \
+		-t $(IMAGE) \
 		--build-arg BUILD_REF=$(BUILD_VERSION) \
 		--build-arg BUILD_DATE=$(BUILD_DATE) \
-		--build-arg VERSION=$(RELATION_SERVICE_VERSION) \
+		--build-arg VERSION=$(SERVICE_VERSION) \
+		--build-arg PROJECT_PKG=$(PROJECT_PKG) \
+		--build-arg SERVICE_NAME=$(SERVICE_NAME) \
 		.
