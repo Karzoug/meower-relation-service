@@ -16,9 +16,11 @@ import (
 	healthHandlers "github.com/Karzoug/meower-relation-service/internal/delivery/http/handler/health"
 	relHttp "github.com/Karzoug/meower-relation-service/internal/delivery/http/handler/relation"
 	httpServer "github.com/Karzoug/meower-relation-service/internal/delivery/http/server"
+	relRepo "github.com/Karzoug/meower-relation-service/internal/relation/repo/neo4j"
 	"github.com/Karzoug/meower-relation-service/internal/relation/service"
 	"github.com/Karzoug/meower-relation-service/pkg/buildinfo"
 	"github.com/Karzoug/meower-relation-service/pkg/healthcheck"
+	"github.com/Karzoug/meower-relation-service/pkg/neo4j"
 	"github.com/Karzoug/meower-relation-service/pkg/trace/otlp"
 )
 
@@ -62,8 +64,14 @@ func Run(ctx context.Context, logger zerolog.Logger) error {
 
 	tracer := otel.GetTracerProvider().Tracer(pkgName)
 
+	driver, err := neo4j.NewDriver(ctxInit, cfg.Neo4j, logger)
+	if err != nil {
+		return err
+	}
+	defer doClose(driver.Close, logger)
+
 	// set up service
-	relationService := service.NewRelationService()
+	relationService := service.NewRelationService(relRepo.New(cfg.RelationRepo, driver))
 
 	// set up http server
 	httpSrv := httpServer.New(
