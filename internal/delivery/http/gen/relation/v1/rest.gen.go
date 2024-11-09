@@ -18,17 +18,17 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Follow user.
-	// (POST /relation/{userID}:follow)
-	PostRelationUserIDFollow(w http.ResponseWriter, r *http.Request, userID string)
-	// Hide the user.
-	// (POST /relation/{userID}:hide)
-	PostRelationUserIDHide(w http.ResponseWriter, r *http.Request, userID string)
+	// (POST /relation/followings)
+	PostRelationFollowings(w http.ResponseWriter, r *http.Request)
 	// Unfollow user.
-	// (POST /relation/{userID}:unfollow)
-	PostRelationUserIDUnfollow(w http.ResponseWriter, r *http.Request, userID string)
+	// (DELETE /relation/followings/{userID})
+	DeleteRelationFollowingsUserID(w http.ResponseWriter, r *http.Request, userID string)
+	// Hide the user.
+	// (POST /relation/hidden)
+	PostRelationHidden(w http.ResponseWriter, r *http.Request)
 	// Unhide the user.
-	// (POST /relation/{userID}:unhide)
-	PostRelationUserIDUnhide(w http.ResponseWriter, r *http.Request, userID string)
+	// (DELETE /relation/hidden/{userID})
+	DeleteRelationHiddenUserID(w http.ResponseWriter, r *http.Request, userID string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -40,19 +40,8 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
-// PostRelationUserIDFollow operation middleware
-func (siw *ServerInterfaceWrapper) PostRelationUserIDFollow(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "userID" -------------
-	var userID string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "userID", r.PathValue("userID"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userID", Err: err})
-		return
-	}
+// PostRelationFollowings operation middleware
+func (siw *ServerInterfaceWrapper) PostRelationFollowings(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
@@ -61,7 +50,7 @@ func (siw *ServerInterfaceWrapper) PostRelationUserIDFollow(w http.ResponseWrite
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostRelationUserIDFollow(w, r, userID)
+		siw.Handler.PostRelationFollowings(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -71,8 +60,8 @@ func (siw *ServerInterfaceWrapper) PostRelationUserIDFollow(w http.ResponseWrite
 	handler.ServeHTTP(w, r)
 }
 
-// PostRelationUserIDHide operation middleware
-func (siw *ServerInterfaceWrapper) PostRelationUserIDHide(w http.ResponseWriter, r *http.Request) {
+// DeleteRelationFollowingsUserID operation middleware
+func (siw *ServerInterfaceWrapper) DeleteRelationFollowingsUserID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -92,7 +81,7 @@ func (siw *ServerInterfaceWrapper) PostRelationUserIDHide(w http.ResponseWriter,
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostRelationUserIDHide(w, r, userID)
+		siw.Handler.DeleteRelationFollowingsUserID(w, r, userID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -102,19 +91,8 @@ func (siw *ServerInterfaceWrapper) PostRelationUserIDHide(w http.ResponseWriter,
 	handler.ServeHTTP(w, r)
 }
 
-// PostRelationUserIDUnfollow operation middleware
-func (siw *ServerInterfaceWrapper) PostRelationUserIDUnfollow(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "userID" -------------
-	var userID string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "userID", r.PathValue("userID"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userID", Err: err})
-		return
-	}
+// PostRelationHidden operation middleware
+func (siw *ServerInterfaceWrapper) PostRelationHidden(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
@@ -123,7 +101,7 @@ func (siw *ServerInterfaceWrapper) PostRelationUserIDUnfollow(w http.ResponseWri
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostRelationUserIDUnfollow(w, r, userID)
+		siw.Handler.PostRelationHidden(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -133,8 +111,8 @@ func (siw *ServerInterfaceWrapper) PostRelationUserIDUnfollow(w http.ResponseWri
 	handler.ServeHTTP(w, r)
 }
 
-// PostRelationUserIDUnhide operation middleware
-func (siw *ServerInterfaceWrapper) PostRelationUserIDUnhide(w http.ResponseWriter, r *http.Request) {
+// DeleteRelationHiddenUserID operation middleware
+func (siw *ServerInterfaceWrapper) DeleteRelationHiddenUserID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -154,7 +132,7 @@ func (siw *ServerInterfaceWrapper) PostRelationUserIDUnhide(w http.ResponseWrite
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostRelationUserIDUnhide(w, r, userID)
+		siw.Handler.DeleteRelationHiddenUserID(w, r, userID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -284,120 +262,120 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
-	m.HandleFunc("POST "+options.BaseURL+"/relation/{userID}:follow", wrapper.PostRelationUserIDFollow)
-	m.HandleFunc("POST "+options.BaseURL+"/relation/{userID}:hide", wrapper.PostRelationUserIDHide)
-	m.HandleFunc("POST "+options.BaseURL+"/relation/{userID}:unfollow", wrapper.PostRelationUserIDUnfollow)
-	m.HandleFunc("POST "+options.BaseURL+"/relation/{userID}:unhide", wrapper.PostRelationUserIDUnhide)
+	m.HandleFunc("POST "+options.BaseURL+"/relation/followings", wrapper.PostRelationFollowings)
+	m.HandleFunc("DELETE "+options.BaseURL+"/relation/followings/{userID}", wrapper.DeleteRelationFollowingsUserID)
+	m.HandleFunc("POST "+options.BaseURL+"/relation/hidden", wrapper.PostRelationHidden)
+	m.HandleFunc("DELETE "+options.BaseURL+"/relation/hidden/{userID}", wrapper.DeleteRelationHiddenUserID)
 
 	return m
 }
 
-type PostRelationUserIDFollowRequestObject struct {
-	UserID string `json:"userID"`
+type PostRelationFollowingsRequestObject struct {
+	Body *PostRelationFollowingsJSONRequestBody
 }
 
-type PostRelationUserIDFollowResponseObject interface {
-	VisitPostRelationUserIDFollowResponse(w http.ResponseWriter) error
+type PostRelationFollowingsResponseObject interface {
+	VisitPostRelationFollowingsResponse(w http.ResponseWriter) error
 }
 
-type PostRelationUserIDFollow200Response struct {
+type PostRelationFollowings201Response struct {
 }
 
-func (response PostRelationUserIDFollow200Response) VisitPostRelationUserIDFollowResponse(w http.ResponseWriter) error {
-	w.WriteHeader(200)
+func (response PostRelationFollowings201Response) VisitPostRelationFollowingsResponse(w http.ResponseWriter) error {
+	w.WriteHeader(201)
 	return nil
 }
 
-type PostRelationUserIDFollowdefaultJSONResponse struct {
+type PostRelationFollowingsdefaultJSONResponse struct {
 	Body       ErrorResponse
 	StatusCode int
 }
 
-func (response PostRelationUserIDFollowdefaultJSONResponse) VisitPostRelationUserIDFollowResponse(w http.ResponseWriter) error {
+func (response PostRelationFollowingsdefaultJSONResponse) VisitPostRelationFollowingsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.StatusCode)
 
 	return json.NewEncoder(w).Encode(response.Body)
 }
 
-type PostRelationUserIDHideRequestObject struct {
+type DeleteRelationFollowingsUserIDRequestObject struct {
 	UserID string `json:"userID"`
 }
 
-type PostRelationUserIDHideResponseObject interface {
-	VisitPostRelationUserIDHideResponse(w http.ResponseWriter) error
+type DeleteRelationFollowingsUserIDResponseObject interface {
+	VisitDeleteRelationFollowingsUserIDResponse(w http.ResponseWriter) error
 }
 
-type PostRelationUserIDHide200Response struct {
+type DeleteRelationFollowingsUserID200Response struct {
 }
 
-func (response PostRelationUserIDHide200Response) VisitPostRelationUserIDHideResponse(w http.ResponseWriter) error {
+func (response DeleteRelationFollowingsUserID200Response) VisitDeleteRelationFollowingsUserIDResponse(w http.ResponseWriter) error {
 	w.WriteHeader(200)
 	return nil
 }
 
-type PostRelationUserIDHidedefaultJSONResponse struct {
+type DeleteRelationFollowingsUserIDdefaultJSONResponse struct {
 	Body       ErrorResponse
 	StatusCode int
 }
 
-func (response PostRelationUserIDHidedefaultJSONResponse) VisitPostRelationUserIDHideResponse(w http.ResponseWriter) error {
+func (response DeleteRelationFollowingsUserIDdefaultJSONResponse) VisitDeleteRelationFollowingsUserIDResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.StatusCode)
 
 	return json.NewEncoder(w).Encode(response.Body)
 }
 
-type PostRelationUserIDUnfollowRequestObject struct {
-	UserID string `json:"userID"`
+type PostRelationHiddenRequestObject struct {
+	Body *PostRelationHiddenJSONRequestBody
 }
 
-type PostRelationUserIDUnfollowResponseObject interface {
-	VisitPostRelationUserIDUnfollowResponse(w http.ResponseWriter) error
+type PostRelationHiddenResponseObject interface {
+	VisitPostRelationHiddenResponse(w http.ResponseWriter) error
 }
 
-type PostRelationUserIDUnfollow200Response struct {
+type PostRelationHidden201Response struct {
 }
 
-func (response PostRelationUserIDUnfollow200Response) VisitPostRelationUserIDUnfollowResponse(w http.ResponseWriter) error {
-	w.WriteHeader(200)
+func (response PostRelationHidden201Response) VisitPostRelationHiddenResponse(w http.ResponseWriter) error {
+	w.WriteHeader(201)
 	return nil
 }
 
-type PostRelationUserIDUnfollowdefaultJSONResponse struct {
+type PostRelationHiddendefaultJSONResponse struct {
 	Body       ErrorResponse
 	StatusCode int
 }
 
-func (response PostRelationUserIDUnfollowdefaultJSONResponse) VisitPostRelationUserIDUnfollowResponse(w http.ResponseWriter) error {
+func (response PostRelationHiddendefaultJSONResponse) VisitPostRelationHiddenResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.StatusCode)
 
 	return json.NewEncoder(w).Encode(response.Body)
 }
 
-type PostRelationUserIDUnhideRequestObject struct {
+type DeleteRelationHiddenUserIDRequestObject struct {
 	UserID string `json:"userID"`
 }
 
-type PostRelationUserIDUnhideResponseObject interface {
-	VisitPostRelationUserIDUnhideResponse(w http.ResponseWriter) error
+type DeleteRelationHiddenUserIDResponseObject interface {
+	VisitDeleteRelationHiddenUserIDResponse(w http.ResponseWriter) error
 }
 
-type PostRelationUserIDUnhide200Response struct {
+type DeleteRelationHiddenUserID200Response struct {
 }
 
-func (response PostRelationUserIDUnhide200Response) VisitPostRelationUserIDUnhideResponse(w http.ResponseWriter) error {
+func (response DeleteRelationHiddenUserID200Response) VisitDeleteRelationHiddenUserIDResponse(w http.ResponseWriter) error {
 	w.WriteHeader(200)
 	return nil
 }
 
-type PostRelationUserIDUnhidedefaultJSONResponse struct {
+type DeleteRelationHiddenUserIDdefaultJSONResponse struct {
 	Body       ErrorResponse
 	StatusCode int
 }
 
-func (response PostRelationUserIDUnhidedefaultJSONResponse) VisitPostRelationUserIDUnhideResponse(w http.ResponseWriter) error {
+func (response DeleteRelationHiddenUserIDdefaultJSONResponse) VisitDeleteRelationHiddenUserIDResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.StatusCode)
 
@@ -407,17 +385,17 @@ func (response PostRelationUserIDUnhidedefaultJSONResponse) VisitPostRelationUse
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Follow user.
-	// (POST /relation/{userID}:follow)
-	PostRelationUserIDFollow(ctx context.Context, request PostRelationUserIDFollowRequestObject) (PostRelationUserIDFollowResponseObject, error)
-	// Hide the user.
-	// (POST /relation/{userID}:hide)
-	PostRelationUserIDHide(ctx context.Context, request PostRelationUserIDHideRequestObject) (PostRelationUserIDHideResponseObject, error)
+	// (POST /relation/followings)
+	PostRelationFollowings(ctx context.Context, request PostRelationFollowingsRequestObject) (PostRelationFollowingsResponseObject, error)
 	// Unfollow user.
-	// (POST /relation/{userID}:unfollow)
-	PostRelationUserIDUnfollow(ctx context.Context, request PostRelationUserIDUnfollowRequestObject) (PostRelationUserIDUnfollowResponseObject, error)
+	// (DELETE /relation/followings/{userID})
+	DeleteRelationFollowingsUserID(ctx context.Context, request DeleteRelationFollowingsUserIDRequestObject) (DeleteRelationFollowingsUserIDResponseObject, error)
+	// Hide the user.
+	// (POST /relation/hidden)
+	PostRelationHidden(ctx context.Context, request PostRelationHiddenRequestObject) (PostRelationHiddenResponseObject, error)
 	// Unhide the user.
-	// (POST /relation/{userID}:unhide)
-	PostRelationUserIDUnhide(ctx context.Context, request PostRelationUserIDUnhideRequestObject) (PostRelationUserIDUnhideResponseObject, error)
+	// (DELETE /relation/hidden/{userID})
+	DeleteRelationHiddenUserID(ctx context.Context, request DeleteRelationHiddenUserIDRequestObject) (DeleteRelationHiddenUserIDResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -449,25 +427,30 @@ type strictHandler struct {
 	options     StrictHTTPServerOptions
 }
 
-// PostRelationUserIDFollow operation middleware
-func (sh *strictHandler) PostRelationUserIDFollow(w http.ResponseWriter, r *http.Request, userID string) {
-	var request PostRelationUserIDFollowRequestObject
+// PostRelationFollowings operation middleware
+func (sh *strictHandler) PostRelationFollowings(w http.ResponseWriter, r *http.Request) {
+	var request PostRelationFollowingsRequestObject
 
-	request.UserID = userID
+	var body PostRelationFollowingsJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.PostRelationUserIDFollow(ctx, request.(PostRelationUserIDFollowRequestObject))
+		return sh.ssi.PostRelationFollowings(ctx, request.(PostRelationFollowingsRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostRelationUserIDFollow")
+		handler = middleware(handler, "PostRelationFollowings")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(PostRelationUserIDFollowResponseObject); ok {
-		if err := validResponse.VisitPostRelationUserIDFollowResponse(w); err != nil {
+	} else if validResponse, ok := response.(PostRelationFollowingsResponseObject); ok {
+		if err := validResponse.VisitPostRelationFollowingsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -475,25 +458,25 @@ func (sh *strictHandler) PostRelationUserIDFollow(w http.ResponseWriter, r *http
 	}
 }
 
-// PostRelationUserIDHide operation middleware
-func (sh *strictHandler) PostRelationUserIDHide(w http.ResponseWriter, r *http.Request, userID string) {
-	var request PostRelationUserIDHideRequestObject
+// DeleteRelationFollowingsUserID operation middleware
+func (sh *strictHandler) DeleteRelationFollowingsUserID(w http.ResponseWriter, r *http.Request, userID string) {
+	var request DeleteRelationFollowingsUserIDRequestObject
 
 	request.UserID = userID
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.PostRelationUserIDHide(ctx, request.(PostRelationUserIDHideRequestObject))
+		return sh.ssi.DeleteRelationFollowingsUserID(ctx, request.(DeleteRelationFollowingsUserIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostRelationUserIDHide")
+		handler = middleware(handler, "DeleteRelationFollowingsUserID")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(PostRelationUserIDHideResponseObject); ok {
-		if err := validResponse.VisitPostRelationUserIDHideResponse(w); err != nil {
+	} else if validResponse, ok := response.(DeleteRelationFollowingsUserIDResponseObject); ok {
+		if err := validResponse.VisitDeleteRelationFollowingsUserIDResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -501,25 +484,30 @@ func (sh *strictHandler) PostRelationUserIDHide(w http.ResponseWriter, r *http.R
 	}
 }
 
-// PostRelationUserIDUnfollow operation middleware
-func (sh *strictHandler) PostRelationUserIDUnfollow(w http.ResponseWriter, r *http.Request, userID string) {
-	var request PostRelationUserIDUnfollowRequestObject
+// PostRelationHidden operation middleware
+func (sh *strictHandler) PostRelationHidden(w http.ResponseWriter, r *http.Request) {
+	var request PostRelationHiddenRequestObject
 
-	request.UserID = userID
+	var body PostRelationHiddenJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.PostRelationUserIDUnfollow(ctx, request.(PostRelationUserIDUnfollowRequestObject))
+		return sh.ssi.PostRelationHidden(ctx, request.(PostRelationHiddenRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostRelationUserIDUnfollow")
+		handler = middleware(handler, "PostRelationHidden")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(PostRelationUserIDUnfollowResponseObject); ok {
-		if err := validResponse.VisitPostRelationUserIDUnfollowResponse(w); err != nil {
+	} else if validResponse, ok := response.(PostRelationHiddenResponseObject); ok {
+		if err := validResponse.VisitPostRelationHiddenResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -527,25 +515,25 @@ func (sh *strictHandler) PostRelationUserIDUnfollow(w http.ResponseWriter, r *ht
 	}
 }
 
-// PostRelationUserIDUnhide operation middleware
-func (sh *strictHandler) PostRelationUserIDUnhide(w http.ResponseWriter, r *http.Request, userID string) {
-	var request PostRelationUserIDUnhideRequestObject
+// DeleteRelationHiddenUserID operation middleware
+func (sh *strictHandler) DeleteRelationHiddenUserID(w http.ResponseWriter, r *http.Request, userID string) {
+	var request DeleteRelationHiddenUserIDRequestObject
 
 	request.UserID = userID
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.PostRelationUserIDUnhide(ctx, request.(PostRelationUserIDUnhideRequestObject))
+		return sh.ssi.DeleteRelationHiddenUserID(ctx, request.(DeleteRelationHiddenUserIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostRelationUserIDUnhide")
+		handler = middleware(handler, "DeleteRelationHiddenUserID")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(PostRelationUserIDUnhideResponseObject); ok {
-		if err := validResponse.VisitPostRelationUserIDUnhideResponse(w); err != nil {
+	} else if validResponse, ok := response.(DeleteRelationHiddenUserIDResponseObject); ok {
+		if err := validResponse.VisitDeleteRelationHiddenUserIDResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

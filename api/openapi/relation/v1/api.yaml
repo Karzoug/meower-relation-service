@@ -81,20 +81,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /relation/{userID}:follow:
+  /relation/followings:
     post:
       tags:
         - relation
       summary: Follow user.
-      parameters:
-        - name: userID
-          in: path
-          required: true
-          description: The userID of the user to follow.
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserIdRequest'
       responses:
-        '200':
+        '201':
           description: User followed.
         default:
           description: Error
@@ -102,8 +101,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /relation/{userID}:unfollow:
-    post:
+  /relation/followings/{userID}:
+    delete:
       tags:
         - relation
       summary: Unfollow user.
@@ -124,20 +123,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /relation/{userID}:hide:
+  /relation/hidden:
     post:
       tags:
         - relation
       summary: Hide the user.
-      parameters:
-        - name: userID
-          in: path
-          required: true
-          description: The userID of the user to hide.
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserIdRequest'
       responses:
-        '200':
+        '201':
           description: User hidden.
         default:
           description: Error
@@ -145,8 +143,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /relation/{userID}:unhide:
-    post:
+  /relation/hidden/{userID}:
+    delete:
       tags:
         - relation
       summary: Unhide the user.
@@ -295,6 +293,15 @@ components:
         id:
           type: string
           description: The id of the post.
+      required:
+        - id
+
+    UserIdRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The id of the user.
       required:
         - id
 

@@ -56,44 +56,8 @@ type handlers struct {
 	logger          zerolog.Logger
 }
 
-// PostRelationUserIDFollow implements v1.StrictServerInterface.
-func (h handlers) PostRelationUserIDFollow(ctx context.Context, request gen.PostRelationUserIDFollowRequestObject) (gen.PostRelationUserIDFollowResponseObject, error) {
-	if err := h.relationService.Follow(ctx,
-		auth.UserIDFromContext(ctx),
-		request.UserID,
-	); err != nil {
-		return nil, err
-	}
-
-	return gen.PostRelationUserIDFollow200Response{}, nil
-}
-
-// PostRelationUserIDUnfollow implements v1.StrictServerInterface.
-func (h handlers) PostRelationUserIDUnfollow(ctx context.Context, request gen.PostRelationUserIDUnfollowRequestObject) (gen.PostRelationUserIDUnfollowResponseObject, error) {
-	if err := h.relationService.Unfollow(ctx,
-		auth.UserIDFromContext(ctx),
-		request.UserID,
-	); err != nil {
-		return nil, err
-	}
-
-	return gen.PostRelationUserIDUnfollow200Response{}, nil
-}
-
-// PostRelationUserIDHide implements v1.StrictServerInterface.
-func (h handlers) PostRelationUserIDHide(ctx context.Context, request gen.PostRelationUserIDHideRequestObject) (gen.PostRelationUserIDHideResponseObject, error) {
-	if err := h.relationService.Hide(ctx,
-		auth.UserIDFromContext(ctx),
-		request.UserID,
-	); err != nil {
-		return nil, err
-	}
-
-	return gen.PostRelationUserIDHide200Response{}, nil
-}
-
-// PostRelationUserIDUnhide implements v1.StrictServerInterface.
-func (h handlers) PostRelationUserIDUnhide(ctx context.Context, request gen.PostRelationUserIDUnhideRequestObject) (gen.PostRelationUserIDUnhideResponseObject, error) {
+// DeleteRelationHiddenUserID implements v1.StrictServerInterface.
+func (h handlers) DeleteRelationHiddenUserID(ctx context.Context, request gen.DeleteRelationHiddenUserIDRequestObject) (gen.DeleteRelationHiddenUserIDResponseObject, error) {
 	if err := h.relationService.Unhide(ctx,
 		auth.UserIDFromContext(ctx),
 		request.UserID,
@@ -101,5 +65,41 @@ func (h handlers) PostRelationUserIDUnhide(ctx context.Context, request gen.Post
 		return nil, err
 	}
 
-	return gen.PostRelationUserIDUnhide200Response{}, nil
+	return gen.DeleteRelationHiddenUserID200Response{}, nil
+}
+
+// DeleteRelationFollowingsUserID implements v1.StrictServerInterface.
+func (h handlers) DeleteRelationFollowingsUserID(ctx context.Context, request gen.DeleteRelationFollowingsUserIDRequestObject) (gen.DeleteRelationFollowingsUserIDResponseObject, error) {
+	if err := h.relationService.Unfollow(ctx,
+		auth.UserIDFromContext(ctx),
+		request.UserID,
+	); err != nil {
+		return nil, err
+	}
+
+	return gen.DeleteRelationFollowingsUserID200Response{}, nil
+}
+
+// PostRelationFollowings implements v1.StrictServerInterface.
+func (h handlers) PostRelationFollowings(ctx context.Context, request gen.PostRelationFollowingsRequestObject) (gen.PostRelationFollowingsResponseObject, error) {
+	if err := h.relationService.Follow(ctx,
+		auth.UserIDFromContext(ctx),
+		request.Body.Id,
+	); err != nil {
+		return nil, err
+	}
+
+	return gen.PostRelationFollowings201Response{}, nil
+}
+
+// PostRelationHidden implements v1.StrictServerInterface.
+func (h handlers) PostRelationHidden(ctx context.Context, request gen.PostRelationHiddenRequestObject) (gen.PostRelationHiddenResponseObject, error) {
+	if err := h.relationService.Hide(ctx,
+		auth.UserIDFromContext(ctx),
+		request.Body.Id,
+	); err != nil {
+		return nil, err
+	}
+
+	return gen.PostRelationHidden201Response{}, nil
 }

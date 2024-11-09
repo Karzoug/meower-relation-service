@@ -12,3 +12,15 @@ type ErrorResponse struct {
 	// Error Description of the error.
 	Error string `json:"error"`
 }
+
+// UserIdRequest defines model for UserIdRequest.
+type UserIdRequest struct {
+	// Id The id of the user.
+	Id string `json:"id"`
+}
+
+// PostRelationFollowingsJSONRequestBody defines body for PostRelationFollowings for application/json ContentType.
+type PostRelationFollowingsJSONRequestBody = UserIdRequest
+
+// PostRelationHiddenJSONRequestBody defines body for PostRelationHidden for application/json ContentType.
+type PostRelationHiddenJSONRequestBody = UserIdRequest
