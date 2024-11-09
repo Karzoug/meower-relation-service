@@ -49,7 +49,9 @@ RETURN id, follow_start, hidden
 		query,
 		pms,
 		neo4j.EagerResultTransformer,
-		neo4j.ExecuteQueryWithDatabase(r.cfg.DBName))
+		neo4j.ExecuteQueryWithDatabase(r.cfg.DBName),
+		neo4j.ExecuteQueryWithReadersRouting(),
+	)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -97,7 +99,9 @@ RETURN id, follow_start, hidden
 		query,
 		pms,
 		neo4j.EagerResultTransformer,
-		neo4j.ExecuteQueryWithDatabase(r.cfg.DBName))
+		neo4j.ExecuteQueryWithDatabase(r.cfg.DBName),
+		neo4j.ExecuteQueryWithReadersRouting(),
+	)
 	if err != nil {
 		return nil, nil, err
 	}
