@@ -98,6 +98,7 @@ build:
 generate:
 	$(TEMP_BIN)/oapi-codegen --config=oapi_server.config.yaml api/openapi/relation/v1/api.yaml
 	$(TEMP_BIN)/oapi-codegen --config=oapi_models.config.yaml api/openapi/relation/v1/api.yaml
+	$(TEMP_BIN)/buf generate
 
 ## clean: clean all temporary files
 .PHONY: clean

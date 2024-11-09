@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package relation.v1;
+
+option go_package = "relation/v1";
+
+/**
+ * RelationService is the service that provides access to posts
+ * for other services. 
+ * It is assumed that consumers pass the userID 
+ * when making requests on their behalf 
+ * in the context metadata (key: x-user).
+ */
+service RelationService {
+    rpc ListFollowings(ListFollowingsRequest) returns (ListFollowingsResponse);
+    rpc ListFollowers(ListFollowersRequest) returns (ListFollowersResponse);
+}
+
+message ListFollowingsRequest {
+    string user_id = 1;
+    PaginationRequest pagination = 2;
+}
+
+message ListFollowingsResponse {
+    repeated User followings = 1;
+    PaginationResponse pagination = 2;
+}
+
+message ListFollowersRequest {
+    string user_id = 1;
+    PaginationRequest pagination = 2;
+}
+
+message ListFollowersResponse {
+    repeated User followers = 1;
+    PaginationResponse pagination = 2;
+}
+
+message User {
+    string id = 1;
+    bool hidden = 2;
+}
+
+message PaginationRequest {
+    string page_token = 1;
+    // the maximum number of items to return, 
+    // -1 means no limit
+    int32 max_page_size = 2;
+}
+
+message PaginationResponse {
+    string next_page_token = 1;
+}

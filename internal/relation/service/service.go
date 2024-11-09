@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Karzoug/meower-relation-service/internal/relation/entity"
-	"github.com/Karzoug/meower-relation-service/internal/relation/service/options"
+	"github.com/Karzoug/meower-relation-service/pkg/ucerr"
 )
 
 type RelationService struct{}
@@ -13,32 +13,32 @@ func NewRelationService() RelationService {
 	return RelationService{}
 }
 
-func (s RelationService) ListFollowings(ctx context.Context,
+func (rs RelationService) ListFollowings(ctx context.Context,
 	reqUserID, targetUserID string,
-	opts ...options.Lister[options.ListFollowingsOptions],
-) ([]entity.User, error) {
-	panic("not implemented")
+	options ...PaginationOption,
+) (users []entity.User, token *string, err error) {
+	return
 }
 
-func (s RelationService) ListFollowers(ctx context.Context,
+func (rs RelationService) ListFollowers(ctx context.Context,
 	reqUserID, targetUserID string,
-	opts ...options.Lister[options.ListFollowersOptions],
-) ([]entity.User, error) {
-	panic("not implemented")
+	options ...PaginationOption,
+) (users []entity.User, token *string, err error) {
+	return
+}
 }
 
-func (s RelationService) Follow(ctx context.Context, reqUserID, targetUserID string) error {
-	panic("not implemented")
+func (rs RelationService) Follow(ctx context.Context, reqUserID, targetUserID string) error {
+	return nil
 }
-
-func (s RelationService) Unfollow(ctx context.Context, reqUserID, targetUserID string) error {
-	panic("not implemented")
+func (rs RelationService) Unfollow(ctx context.Context, reqUserID, targetUserID string) error {
+	return nil
 }
+func (rs RelationService) Hide(ctx context.Context, reqUserID, targetUserID string) error {
 
-func (s RelationService) Hide(ctx context.Context, reqUserID, targetUserID string) error {
-	panic("not implemented")
+	return nil
 }
+func (rs RelationService) Unhide(ctx context.Context, reqUserID, targetUserID string) error {
 
-func (s RelationService) Unhide(ctx context.Context, reqUserID, targetUserID string) error {
-	panic("not implemented")
+	return nil
 }

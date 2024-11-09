@@ -11,8 +11,10 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Karzoug/meower-relation-service/internal/config"
+	relGrpc "github.com/Karzoug/meower-relation-service/internal/delivery/grpc/handler/relation"
+	grpcServer "github.com/Karzoug/meower-relation-service/internal/delivery/grpc/server"
 	healthHandlers "github.com/Karzoug/meower-relation-service/internal/delivery/http/handler/health"
-	relHandlers "github.com/Karzoug/meower-relation-service/internal/delivery/http/handler/relation"
+	relHttp "github.com/Karzoug/meower-relation-service/internal/delivery/http/handler/relation"
 	httpServer "github.com/Karzoug/meower-relation-service/internal/delivery/http/server"
 	"github.com/Karzoug/meower-relation-service/internal/relation/service"
 	"github.com/Karzoug/meower-relation-service/pkg/buildinfo"
@@ -67,15 +69,28 @@ func Run(ctx context.Context, logger zerolog.Logger) error {
 	httpSrv := httpServer.New(
 		cfg.HTTP,
 		[]httpServer.Routes{
-			relHandlers.RoutesFunc(relationService, tracer, logger),
+			relHttp.RoutesFunc(relationService, tracer, logger),
 			healthHandlers.RoutesFunc(healthcheck.New(), logger),
 		},
 		logger)
+
+	grpcSrv := grpcServer.New(
+		cfg.GRPC,
+		[]grpcServer.ServiceRegister{
+			relGrpc.RegisterService(relationService),
+		},
+		tracer,
+		logger,
+	)
 
 	eg, ctx := errgroup.WithContext(ctx)
 	// run service http server
 	eg.Go(func() error {
 		return httpSrv.Run(ctx)
+	})
+	// run service grpc server
+	eg.Go(func() error {
+		return grpcSrv.Run(ctx)
 	})
 
 	return eg.Wait()
