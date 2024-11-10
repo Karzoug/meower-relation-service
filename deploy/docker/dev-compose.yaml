@@ -1,0 +1,81 @@
+services:
+  neo4j:
+    image: neo4j:5.25
+    container_name: neo4j
+    environment:
+      - NEO4J_AUTH=none
+    restart: unless-stopped
+    ports:
+      - 7474:7474
+      - 7687:7687
+    healthcheck:
+      test: wget http://localhost:7474 || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 20
+      start_period: 2s
+    volumes:
+      - neo4j:/data
+
+  # current version of migrate not support neo4j 5.25, so let's wait to uncomment
+  #
+  # migrate:
+  #   image: migrate/migrate
+  #   volumes:
+  #     - ./../../migrations:/migrations
+  #   command: ["-path", "/migrations", "-database",  "neo4j://neo4j:7687", "up"]
+  #   links: 
+  #     - neo4j
+  #   depends_on:
+  #     neo4j:
+  #       condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/dev-prom.yaml'
+    ports:
+       - 9090:9090
+    restart: unless-stopped
+    volumes:
+      - ./../metric/dev:/etc/prometheus
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    hostname: jaeger
+    ports:
+      - 16686:16686
+    #   - 4317:4317
+    #   - 4318:4318
+    #   - 14268:14268
+    restart: unless-stopped
+
+  relation-service:
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+      prometheus:
+        condition: service_started
+    image: ${IMAGE}
+    container_name: relation-service
+    environment:
+      NEO4J_URI: bolt://neo4j:7687
+      RELATION_REPO_DB_NAME: neo4j
+      OTLP_PROBABILITY: 1
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_EXPORTER_OTLP_INSECURE: true
+      LOG_LEVEL: debug
+    ports:
+       - 3000:3000
+       - 3001:3001
+       - 3002:3002
+    restart: unless-stopped
+
+volumes:
+  neo4j:

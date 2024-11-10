@@ -3,8 +3,9 @@ package neo4j
 import (
 	"context"
 
-	rerr "github.com/Karzoug/meower-relation-service/internal/relation/repo"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+
+	rerr "github.com/Karzoug/meower-relation-service/internal/relation/repo"
 )
 
 func (r repo) Follow(ctx context.Context, reqUserID, targetUserID string) error {

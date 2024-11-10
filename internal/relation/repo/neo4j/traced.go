@@ -3,9 +3,10 @@ package neo4j
 import (
 	"context"
 
-	"github.com/Karzoug/meower-relation-service/internal/relation/entity"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/Karzoug/meower-relation-service/internal/relation/entity"
 )
 
 type tracedRepo struct {
@@ -26,6 +27,7 @@ func (tr tracedRepo) Follow(ctx context.Context, reqUserID, targetUserID string)
 
 	return tr.repo.Follow(ctx, reqUserID, targetUserID)
 }
+
 func (tr tracedRepo) Unfollow(ctx context.Context, reqUserID, targetUserID string) (err error) {
 	const operationID = "neo4j.Unfollow"
 	ctx, span := tr.tracer.Start(ctx, operationID, trace.WithSpanKind(trace.SpanKindClient))

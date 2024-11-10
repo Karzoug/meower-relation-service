@@ -131,3 +131,12 @@ service:
 		--build-arg PROJECT_PKG=$(PROJECT_PKG) \
 		--build-arg SERVICE_NAME=$(SERVICE_NAME) \
 		.
+
+# ------------------------------------------------------------------------------
+# Run docker compose to test service locally
+
+dev-compose-up:
+	IMAGE=$(IMAGE) docker compose -f deploy/docker/dev-compose.yaml  up -d
+
+dev-compose-down:
+	IMAGE=$(IMAGE) docker compose -v -f deploy/docker/dev-compose.yaml down
