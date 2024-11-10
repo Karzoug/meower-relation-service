@@ -20,6 +20,7 @@ import (
 	"github.com/Karzoug/meower-relation-service/internal/relation/service"
 	"github.com/Karzoug/meower-relation-service/pkg/buildinfo"
 	"github.com/Karzoug/meower-relation-service/pkg/healthcheck"
+	"github.com/Karzoug/meower-relation-service/pkg/metric/prom"
 	"github.com/Karzoug/meower-relation-service/pkg/neo4j"
 	"github.com/Karzoug/meower-relation-service/pkg/trace/otlp"
 )
@@ -64,6 +65,13 @@ func Run(ctx context.Context, logger zerolog.Logger) error {
 
 	tracer := otel.GetTracerProvider().Tracer(pkgName)
 
+	// set up meter
+	shutdownMeter, err := prom.RegisterGlobal(ctxInit, serviceName, serviceVersion, metricNamespace)
+	if err != nil {
+		return err
+	}
+	defer doClose(shutdownMeter, logger)
+
 	driver, err := neo4j.NewDriver(ctxInit, cfg.Neo4j, logger)
 	if err != nil {
 		return err
@@ -99,6 +107,10 @@ func Run(ctx context.Context, logger zerolog.Logger) error {
 	// run service grpc server
 	eg.Go(func() error {
 		return grpcSrv.Run(ctx)
+	})
+	// run prometheus metrics http server
+	eg.Go(func() error {
+		return prom.Serve(ctx, cfg.PromHTTP, logger)
 	})
 
 	return eg.Wait()
