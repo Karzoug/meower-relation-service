@@ -3,17 +3,6 @@
 @baseUrl = http://{{hostname}}:{{port}}/api/v1/relation
 
 ###
-# Создаем первоначальных пользователей в БД
-CREATE (Petr:User {id:'Petr'})
-CREATE (Bob:User {id:'Bob'})
-CREATE (Anna:User {id:'Anna'})
-CREATE (Dave:User {id:'Dave'})
-CREATE (Eve:User {id:'Eve'})
-CREATE (Fred:User {id:'Fred'})
-
-CREATE CONSTRAINT FOR (n:User) REQUIRE (n.id) IS UNIQUE
-
-###
 # Следуем за Bob от лица Petr
 POST {{baseUrl}}/followings
 X-User: Petr
