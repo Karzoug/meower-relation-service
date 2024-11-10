@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Karzoug/meower-relation-service/internal/relation/entity"
+	rerr "github.com/Karzoug/meower-relation-service/internal/relation/repo"
 	"github.com/Karzoug/meower-relation-service/pkg/ucerr"
+	"github.com/Karzoug/meower-relation-service/pkg/ucerr/codes"
 )
 
 type RelationService struct {
@@ -51,6 +54,11 @@ func (rs RelationService) ListFollowers(ctx context.Context,
 
 func (rs RelationService) Follow(ctx context.Context, reqUserID, targetUserID string) error {
 	if err := rs.repo.Follow(ctx, reqUserID, targetUserID); err != nil {
+		if errors.Is(err, rerr.ErrNoAffected) {
+			return ucerr.NewError(err,
+				"follow operation failed: follow relation already exists or users not found",
+				codes.FailedPrecondition)
+		}
 		return ucerr.NewInternalError(err)
 	}
 
@@ -59,7 +67,11 @@ func (rs RelationService) Follow(ctx context.Context, reqUserID, targetUserID st
 
 func (rs RelationService) Unfollow(ctx context.Context, reqUserID, targetUserID string) error {
 	if err := rs.repo.Unfollow(ctx, reqUserID, targetUserID); err != nil {
-		return ucerr.NewInternalError(err)
+		if errors.Is(err, rerr.ErrNoAffected) {
+			return ucerr.NewError(err,
+				"unfollow operation failed: follow relation not exists or users not found",
+				codes.FailedPrecondition)
+		}
 	}
 
 	return nil
@@ -67,7 +79,11 @@ func (rs RelationService) Unfollow(ctx context.Context, reqUserID, targetUserID 
 
 func (rs RelationService) Hide(ctx context.Context, reqUserID, targetUserID string) error {
 	if err := rs.repo.Hide(ctx, reqUserID, targetUserID); err != nil {
-		return ucerr.NewInternalError(err)
+		if errors.Is(err, rerr.ErrNoAffected) {
+			return ucerr.NewError(err,
+				"hide operation failed: hide relation already exists or users not found",
+				codes.FailedPrecondition)
+		}
 	}
 
 	return nil
@@ -75,7 +91,11 @@ func (rs RelationService) Hide(ctx context.Context, reqUserID, targetUserID stri
 
 func (rs RelationService) Unhide(ctx context.Context, reqUserID, targetUserID string) error {
 	if err := rs.repo.Unhide(ctx, reqUserID, targetUserID); err != nil {
-		return ucerr.NewInternalError(err)
+		if errors.Is(err, rerr.ErrNoAffected) {
+			return ucerr.NewError(err,
+				"unhide operation failed: hide relation not exists or users not found",
+				codes.FailedPrecondition)
+		}
 	}
 
 	return nil
