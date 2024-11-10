@@ -71,7 +71,7 @@ func Run(ctx context.Context, logger zerolog.Logger) error {
 	defer doClose(driver.Close, logger)
 
 	// set up service
-	relationService := service.NewRelationService(relRepo.New(cfg.RelationRepo, driver))
+	relationService := service.NewRelationService(relRepo.New(cfg.RelationRepo, driver, tracer))
 
 	// set up http server
 	httpSrv := httpServer.New(
