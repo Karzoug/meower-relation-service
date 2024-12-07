@@ -15,8 +15,9 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/Karzoug/meower-relation-service/internal/delivery/grpc/interceptor"
-	zerologHook "github.com/Karzoug/meower-relation-service/internal/delivery/http/handler/zerolog"
+	"github.com/Karzoug/meower-common-go/grpc/interceptor"
+
+	zerologHook "github.com/Karzoug/meower-relation-service/internal/delivery/grpc/zerolog"
 )
 
 type ServiceRegister func(*grpc.Server)

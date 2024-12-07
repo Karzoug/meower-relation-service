@@ -9,7 +9,6 @@ BUILD_DATE                 ?= $(shell date +%FT%T%z)
 BASE_IMAGE                 := meower/service
 IMAGE                      := $(BASE_IMAGE)/relation:$(SERVICE_VERSION)
 
-OAPI_CODEGEN_VERSION       := 2.4.1
 GOLANGCI_LINT_VERSION      := 1.61.0
 BUF_VERSION                := 1.46.0
 PROTOC_GEN_GO_VERSION 	   := 1.35.1
@@ -96,8 +95,6 @@ build:
 ## generate: generate all necessary code
 .PHONY: generate
 generate:
-	$(TEMP_BIN)/oapi-codegen --config=oapi_server.config.yaml api/openapi/relation/v1/api.yaml
-	$(TEMP_BIN)/oapi-codegen --config=oapi_models.config.yaml api/openapi/relation/v1/api.yaml
 	$(TEMP_BIN)/buf generate
 
 ## clean: clean all temporary files
@@ -110,7 +107,6 @@ clean:
 
 ## dev-install-deps: install dependencies with fixed versions in a temporary directory
 dev-install-deps:
-	GOBIN=$(TEMP_BIN) go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v${OAPI_CODEGEN_VERSION}
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TEMP_BIN) v${GOLANGCI_LINT_VERSION}
 	GOBIN=$(TEMP_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v${PROTOC_GEN_GO_VERSION}
 	GOBIN=$(TEMP_BIN) go install -mod=mod google.golang.org/grpc/cmd/protoc-gen-go-grpc@v${PROTOC_GEN_GO_GRPC_VERSION}

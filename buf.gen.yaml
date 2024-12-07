@@ -8,4 +8,7 @@ plugins:
     out: internal/delivery/grpc/gen
     opt: paths=source_relative
 inputs:
-  - directory: api/proto
+  - git_repo: https://github.com/Karzoug/meower-api
+    subdir: proto
+    paths: 
+      - relation/v1/grpc.proto

@@ -10,19 +10,17 @@ import (
 	"go.opentelemetry.io/otel"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/Karzoug/meower-common-go/metric/prom"
+	"github.com/Karzoug/meower-common-go/trace/otlp"
+
 	"github.com/Karzoug/meower-relation-service/internal/config"
+	healthHandler "github.com/Karzoug/meower-relation-service/internal/delivery/grpc/handler/health"
 	relGrpc "github.com/Karzoug/meower-relation-service/internal/delivery/grpc/handler/relation"
 	grpcServer "github.com/Karzoug/meower-relation-service/internal/delivery/grpc/server"
-	healthHandlers "github.com/Karzoug/meower-relation-service/internal/delivery/http/handler/health"
-	relHttp "github.com/Karzoug/meower-relation-service/internal/delivery/http/handler/relation"
-	httpServer "github.com/Karzoug/meower-relation-service/internal/delivery/http/server"
 	relRepo "github.com/Karzoug/meower-relation-service/internal/relation/repo/neo4j"
 	"github.com/Karzoug/meower-relation-service/internal/relation/service"
 	"github.com/Karzoug/meower-relation-service/pkg/buildinfo"
-	"github.com/Karzoug/meower-relation-service/pkg/healthcheck"
-	"github.com/Karzoug/meower-relation-service/pkg/metric/prom"
 	"github.com/Karzoug/meower-relation-service/pkg/neo4j"
-	"github.com/Karzoug/meower-relation-service/pkg/trace/otlp"
 )
 
 const (
@@ -53,9 +51,8 @@ func Run(ctx context.Context, logger zerolog.Logger) error {
 	// set up tracer
 	cfg.OTLP.ServiceName = serviceName
 	cfg.OTLP.ServiceVersion = serviceVersion
-	cfg.OTLP.ExcludedRoutes = map[string]struct{}{
-		"/readiness": {},
-		"/liveness":  {},
+	cfg.OTLP.ExcludedGrpcMethods = map[string]string{
+		"grpc.health.v1.Health": "Check",
 	}
 	shutdownTracer, err := otlp.RegisterGlobal(ctxInit, cfg.OTLP)
 	if err != nil {
@@ -79,20 +76,12 @@ func Run(ctx context.Context, logger zerolog.Logger) error {
 	defer doClose(driver.Close, logger)
 
 	// set up service
-	relationService := service.NewRelationService(relRepo.New(cfg.RelationRepo, driver, tracer))
-
-	// set up http server
-	httpSrv := httpServer.New(
-		cfg.HTTP,
-		[]httpServer.Routes{
-			relHttp.RoutesFunc(relationService, tracer, logger),
-			healthHandlers.RoutesFunc(healthcheck.New(), logger),
-		},
-		logger)
+	relationService := service.NewRelationService(relRepo.New(cfg.RelationRepo, driver))
 
 	grpcSrv := grpcServer.New(
 		cfg.GRPC,
 		[]grpcServer.ServiceRegister{
+			healthHandler.RegisterService(),
 			relGrpc.RegisterService(relationService),
 		},
 		tracer,
@@ -100,10 +89,6 @@ func Run(ctx context.Context, logger zerolog.Logger) error {
 	)
 
 	eg, ctx := errgroup.WithContext(ctx)
-	// run service http server
-	eg.Go(func() error {
-		return httpSrv.Run(ctx)
-	})
 	// run service grpc server
 	eg.Go(func() error {
 		return grpcSrv.Run(ctx)

@@ -14,8 +14,6 @@ services:
       timeout: 2s
       retries: 20
       start_period: 2s
-    volumes:
-      - neo4j:/data
 
   # current version of migrate not support neo4j 5.25, so let's wait to uncomment
   #
@@ -76,6 +74,3 @@ services:
        - 3001:3001
        - 3002:3002
     restart: unless-stopped
-
-volumes:
-  neo4j:

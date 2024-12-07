@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Karzoug/meower-common-go/ucerr"
+	"github.com/rs/xid"
+	"google.golang.org/grpc/codes"
+
 	"github.com/Karzoug/meower-relation-service/internal/relation/entity"
 	rerr "github.com/Karzoug/meower-relation-service/internal/relation/repo"
-	"github.com/Karzoug/meower-relation-service/pkg/ucerr"
-	"github.com/Karzoug/meower-relation-service/pkg/ucerr/codes"
 )
 
 type RelationService struct {
@@ -20,40 +22,52 @@ func NewRelationService(rr relationRepository) RelationService {
 	}
 }
 
-func (rs RelationService) ListFollowings(ctx context.Context,
-	reqUserID, targetUserID string,
-	options ...PaginationOption,
-) (users []entity.User, token *string, err error) {
-	pagination := defaultPagination()
-	for _, opt := range options {
-		opt(&pagination)
+func (rs RelationService) ListFollowings(ctx context.Context, userID xid.ID, pgn ListUsersPagination) (users []entity.User, token xid.ID, err error) {
+	if pgn.Size < -1 {
+		return nil, xid.NilID(), ucerr.NewError(
+			nil,
+			"invalid pagination parameter: negative size & not -1",
+			codes.InvalidArgument,
+		)
 	}
-	users, token, err = rs.repo.ListFollowings(ctx, reqUserID, targetUserID, pagination.pageToken, pagination.maxPageSize)
+	if pgn.Size == 0 {
+		pgn.Size = 100
+	} else if pgn.Size > 100 {
+		pgn.Size = 100
+	}
+
+	users, token, err = rs.repo.ListFollowings(ctx, userID, pgn.Token, pgn.Size)
 	if err != nil {
-		return nil, nil, ucerr.NewInternalError(err)
+		return nil, xid.NilID(), ucerr.NewInternalError(err)
 	}
 
 	return
 }
 
-func (rs RelationService) ListFollowers(ctx context.Context,
-	reqUserID, targetUserID string,
-	options ...PaginationOption,
-) (users []entity.User, token *string, err error) {
-	pagination := defaultPagination()
-	for _, opt := range options {
-		opt(&pagination)
+func (rs RelationService) ListFollowers(ctx context.Context, userID xid.ID, pgn ListUsersPagination) (users []entity.User, token xid.ID, err error) {
+	if pgn.Size < -1 {
+		return nil, xid.NilID(), ucerr.NewError(
+			nil,
+			"invalid pagination parameter: negative size & not -1",
+			codes.InvalidArgument,
+		)
 	}
-	users, token, err = rs.repo.ListFollowers(ctx, reqUserID, targetUserID, pagination.pageToken, pagination.maxPageSize)
+	if pgn.Size == 0 {
+		pgn.Size = 100
+	} else if pgn.Size > 100 {
+		pgn.Size = 100
+	}
+
+	users, token, err = rs.repo.ListFollowers(ctx, userID, pgn.Token, pgn.Size)
 	if err != nil {
-		return nil, nil, ucerr.NewInternalError(err)
+		return nil, xid.NilID(), ucerr.NewInternalError(err)
 	}
 
 	return
 }
 
-func (rs RelationService) Follow(ctx context.Context, reqUserID, targetUserID string) error {
-	if err := rs.repo.Follow(ctx, reqUserID, targetUserID); err != nil {
+func (rs RelationService) Follow(ctx context.Context, sourceUserID, targetUserID xid.ID) error {
+	if err := rs.repo.Follow(ctx, sourceUserID, targetUserID); err != nil {
 		if errors.Is(err, rerr.ErrNoAffected) {
 			return ucerr.NewError(err,
 				"follow operation failed: follow relation already exists or users not found",
@@ -65,8 +79,8 @@ func (rs RelationService) Follow(ctx context.Context, reqUserID, targetUserID st
 	return nil
 }
 
-func (rs RelationService) Unfollow(ctx context.Context, reqUserID, targetUserID string) error {
-	if err := rs.repo.Unfollow(ctx, reqUserID, targetUserID); err != nil {
+func (rs RelationService) Unfollow(ctx context.Context, sourceUserID, targetUserID xid.ID) error {
+	if err := rs.repo.Unfollow(ctx, sourceUserID, targetUserID); err != nil {
 		if errors.Is(err, rerr.ErrNoAffected) {
 			return ucerr.NewError(err,
 				"unfollow operation failed: follow relation not exists or users not found",
@@ -77,11 +91,11 @@ func (rs RelationService) Unfollow(ctx context.Context, reqUserID, targetUserID 
 	return nil
 }
 
-func (rs RelationService) Hide(ctx context.Context, reqUserID, targetUserID string) error {
-	if err := rs.repo.Hide(ctx, reqUserID, targetUserID); err != nil {
+func (rs RelationService) Mute(ctx context.Context, sourceUserID, targetUserID xid.ID) error {
+	if err := rs.repo.Mute(ctx, sourceUserID, targetUserID); err != nil {
 		if errors.Is(err, rerr.ErrNoAffected) {
 			return ucerr.NewError(err,
-				"hide operation failed: hide relation already exists or users not found",
+				"mute operation failed: mute relation already exists or users not found",
 				codes.FailedPrecondition)
 		}
 	}
@@ -89,11 +103,11 @@ func (rs RelationService) Hide(ctx context.Context, reqUserID, targetUserID stri
 	return nil
 }
 
-func (rs RelationService) Unhide(ctx context.Context, reqUserID, targetUserID string) error {
-	if err := rs.repo.Unhide(ctx, reqUserID, targetUserID); err != nil {
+func (rs RelationService) Unmute(ctx context.Context, sourceUserID, targetUserID xid.ID) error {
+	if err := rs.repo.Unmute(ctx, sourceUserID, targetUserID); err != nil {
 		if errors.Is(err, rerr.ErrNoAffected) {
 			return ucerr.NewError(err,
-				"unhide operation failed: hide relation not exists or users not found",
+				"unmute operation failed: mute relation not exists or users not found",
 				codes.FailedPrecondition)
 		}
 	}

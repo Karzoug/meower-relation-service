@@ -1,9 +1,13 @@
 package entity
 
-import "time"
+import (
+	"time"
+
+	"github.com/rs/xid"
+)
 
 type User struct {
-	ID          string
+	ID          xid.ID
 	FollowStart time.Time
-	Hidden      bool
+	Muted       bool
 }

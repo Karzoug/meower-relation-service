@@ -3,7 +3,7 @@ package zerolog
 import (
 	"github.com/rs/zerolog"
 
-	"github.com/Karzoug/meower-relation-service/pkg/trace/otlp"
+	"github.com/Karzoug/meower-common-go/trace/otlp"
 )
 
 // TraceIDHook() returns a zerolog Hook function to log the trace ID attribute;

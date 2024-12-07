@@ -9,8 +9,8 @@ func ToProtoUsers(users []entity.User) []*desc.User {
 	pUsers := make([]*desc.User, len(users))
 	for i := range users {
 		pUsers[i] = &desc.User{
-			Id:     users[i].ID,
-			Hidden: users[i].Hidden,
+			Id:    users[i].ID.String(),
+			Muted: users[i].Muted,
 		}
 	}
 	return pUsers
