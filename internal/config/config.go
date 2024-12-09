@@ -5,6 +5,7 @@ import (
 	"github.com/Karzoug/meower-common-go/trace/otlp"
 
 	grpc "github.com/Karzoug/meower-relation-service/internal/delivery/grpc/server"
+	"github.com/Karzoug/meower-relation-service/internal/delivery/kafka"
 	relRepo "github.com/Karzoug/meower-relation-service/internal/relation/repo/neo4j"
 	"github.com/Karzoug/meower-relation-service/pkg/neo4j"
 
@@ -18,4 +19,5 @@ type Config struct {
 	OTLP         otlp.Config       `envPrefix:"OTLP_"`
 	Neo4j        neo4j.Config      `envPrefix:"NEO4J_"`
 	RelationRepo relRepo.Config    `envPrefix:"RELATION_REPO_"`
+	Kafka        kafka.Config      `envPrefix:"KAFKA_"`
 }

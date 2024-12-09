@@ -15,4 +15,6 @@ type relationRepository interface {
 	Unmute(ctx context.Context, sourceUserID, targetUserID xid.ID) error
 	ListFollowings(ctx context.Context, userID, afterID xid.ID, limit int) ([]entity.User, xid.ID, error)
 	ListFollowers(ctx context.Context, userID, afterID xid.ID, limit int) ([]entity.User, xid.ID, error)
+	CreateUser(ctx context.Context, id xid.ID) error
+	DeleteUser(ctx context.Context, id xid.ID) error
 }

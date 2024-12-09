@@ -95,12 +95,40 @@ build:
 ## generate: generate all necessary code
 .PHONY: generate
 generate:
-	$(TEMP_BIN)/buf generate
+	$(TEMP_BIN)/buf generate --template buf.gen.grpc.yaml
+	$(TEMP_BIN)/buf generate --template buf.gen.kafka.delivery.yaml
 
 ## clean: clean all temporary files
 .PHONY: clean
 clean:
 	rm -rf $(TEMP_DIR)
+
+# ==============================================================================
+# Kafka tests
+
+## dev-create-user: send a message to Kafka - user created (ex: dev-create-user id="9m4e2mr0ui3e8a215n4g")
+dev-create-user:
+	mkdir ${TEMP_DIR}/proto && cd ${TEMP_DIR}/proto && \
+	curl -H 'Accept: application/vnd.github.v3.raw' -O -L https://api.github.com/repos/Karzoug/meower-api/contents/proto/user/v1/kafka.proto
+	$(TEMP_BIN)/protokaf produce ChangedEvent \
+		--broker localhost:9094 \
+		--proto ${TEMP_DIR}/proto/kafka.proto \
+		--topic users \
+		--header "fngpnt=09f306a2927c78cf914a5984f6f9754b" \
+		--data '{"id": "$(id)", "change_type": 1}'
+	rm -rf ${TEMP_DIR}/proto
+
+## dev-delete-user: send a message to Kafka - user deleted (ex: dev-delete-user id="9m4e2mr0ui3e8a215n4g")
+dev-delete-user:
+	mkdir ${TEMP_DIR}/proto && cd ${TEMP_DIR}/proto && \
+	curl -H 'Accept: application/vnd.github.v3.raw' -O -L https://api.github.com/repos/Karzoug/meower-api/contents/proto/user/v1/kafka.proto
+	$(TEMP_BIN)/protokaf produce ChangedEvent \
+		--broker localhost:9094 \
+		--proto ${TEMP_DIR}/proto/kafka.proto \
+		--topic users \
+		--header "fngpnt=09f306a2927c78cf914a5984f6f9754b" \
+		--data '{"id": "$(id)", "change_type": 2}'
+	rm -rf ${TEMP_DIR}/proto
 
 # ==============================================================================
 # Install dependencies
@@ -111,6 +139,7 @@ dev-install-deps:
 	GOBIN=$(TEMP_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v${PROTOC_GEN_GO_VERSION}
 	GOBIN=$(TEMP_BIN) go install -mod=mod google.golang.org/grpc/cmd/protoc-gen-go-grpc@v${PROTOC_GEN_GO_GRPC_VERSION}
 	GOBIN=$(TEMP_BIN) go install github.com/bufbuild/buf/cmd/buf@v$(BUF_VERSION)
+	GOBIN=$(TEMP_BIN) go install github.com/kuper-tech/protokaf@latest
 
 # ==============================================================================
 # Building containers

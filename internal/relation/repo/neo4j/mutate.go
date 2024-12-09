@@ -9,6 +9,33 @@ import (
 	rerr "github.com/Karzoug/meower-relation-service/internal/relation/repo"
 )
 
+func (r repo) CreateUser(ctx context.Context, id xid.ID) error {
+	res, err := neo4j.ExecuteQuery(ctx, r.driver,
+		`CREATE (u:User {id: $id})`,
+		map[string]any{
+			"id": id.String(),
+		}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(r.cfg.DBName))
+
+	if res.Summary.Counters().NodesCreated() == 0 {
+		return rerr.ErrAlreadyExists
+	}
+
+	return err
+}
+
+func (r repo) DeleteUser(ctx context.Context, id xid.ID) error {
+	_, err := neo4j.ExecuteQuery(ctx, r.driver,
+		`MATCH (u:User {id: $id})
+		 DETACH DELETE u`,
+		map[string]any{
+			"id": id.String(),
+		}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(r.cfg.DBName))
+
+	return err
+}
+
 func (r repo) Follow(ctx context.Context, sourceUserID, targetUserID xid.ID) error {
 	res, err := neo4j.ExecuteQuery(ctx, r.driver,
 		`MATCH (u1:User{id: $ruser})

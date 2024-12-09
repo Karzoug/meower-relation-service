@@ -22,29 +22,26 @@ func NewRelationService(rr relationRepository) RelationService {
 	}
 }
 
-func (rs RelationService) ListFollowings(ctx context.Context, userID xid.ID, pgn ListUsersPagination) (users []entity.User, token xid.ID, err error) {
-	if pgn.Size < -1 {
-		return nil, xid.NilID(), ucerr.NewError(
-			nil,
-			"invalid pagination parameter: negative size & not -1",
-			codes.InvalidArgument,
-		)
-	}
-	if pgn.Size == 0 {
-		pgn.Size = 100
-	} else if pgn.Size > 100 {
-		pgn.Size = 100
+func (rs RelationService) CreateUser(ctx context.Context, id xid.ID) error {
+	if err := rs.repo.CreateUser(ctx, id); err != nil {
+		if errors.Is(err, rerr.ErrAlreadyExists) {
+			return ucerr.NewError(nil, "user already exists", codes.AlreadyExists)
+		}
+		return ucerr.NewInternalError(err)
 	}
 
-	users, token, err = rs.repo.ListFollowings(ctx, userID, pgn.Token, pgn.Size)
-	if err != nil {
-		return nil, xid.NilID(), ucerr.NewInternalError(err)
-	}
-
-	return
+	return nil
 }
 
-func (rs RelationService) ListFollowers(ctx context.Context, userID xid.ID, pgn ListUsersPagination) (users []entity.User, token xid.ID, err error) {
+func (rs RelationService) DeleteUser(ctx context.Context, id xid.ID) error {
+	if err := rs.repo.DeleteUser(ctx, id); err != nil {
+		return ucerr.NewInternalError(err)
+	}
+
+	return nil
+}
+
+func (rs RelationService) ListFollowings(ctx context.Context, userID xid.ID, pgn ListUsersPagination) ([]entity.User, xid.ID, error) {
 	if pgn.Size < -1 {
 		return nil, xid.NilID(), ucerr.NewError(
 			nil,
@@ -58,12 +55,34 @@ func (rs RelationService) ListFollowers(ctx context.Context, userID xid.ID, pgn 
 		pgn.Size = 100
 	}
 
-	users, token, err = rs.repo.ListFollowers(ctx, userID, pgn.Token, pgn.Size)
+	users, token, err := rs.repo.ListFollowings(ctx, userID, pgn.Token, pgn.Size)
 	if err != nil {
 		return nil, xid.NilID(), ucerr.NewInternalError(err)
 	}
 
-	return
+	return users, token, nil
+}
+
+func (rs RelationService) ListFollowers(ctx context.Context, userID xid.ID, pgn ListUsersPagination) ([]entity.User, xid.ID, error) {
+	if pgn.Size < -1 {
+		return nil, xid.NilID(), ucerr.NewError(
+			nil,
+			"invalid pagination parameter: negative size & not -1",
+			codes.InvalidArgument,
+		)
+	}
+	if pgn.Size == 0 {
+		pgn.Size = 100
+	} else if pgn.Size > 100 {
+		pgn.Size = 100
+	}
+
+	users, token, err := rs.repo.ListFollowers(ctx, userID, pgn.Token, pgn.Size)
+	if err != nil {
+		return nil, xid.NilID(), ucerr.NewInternalError(err)
+	}
+
+	return users, token, nil
 }
 
 func (rs RelationService) Follow(ctx context.Context, sourceUserID, targetUserID xid.ID) error {

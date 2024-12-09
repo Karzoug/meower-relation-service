@@ -1,8 +1,8 @@
 package converter
 
 import (
-	desc "github.com/Karzoug/meower-relation-service/internal/delivery/grpc/gen/relation/v1"
 	"github.com/Karzoug/meower-relation-service/internal/relation/entity"
+	desc "github.com/Karzoug/meower-relation-service/pkg/proto/grpc/relation/v1"
 )
 
 func ToProtoUsers(users []entity.User) []*desc.User {
