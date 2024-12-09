@@ -1,0 +1,100 @@
+services:
+  neo4j:
+    image: neo4j:5.25
+    container_name: neo4j
+    environment:
+      - NEO4J_AUTH=none
+    restart: unless-stopped
+    ports:
+      - 7474:7474
+      - 7687:7687
+    healthcheck:
+      test: wget http://localhost:7474 || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 20
+      start_period: 2s
+
+  # current version of migrate not support neo4j 5.25, so let's wait to uncomment
+  #
+  # migrate:
+  #   image: migrate/migrate
+  #   volumes:
+  #     - ./../../migrations:/migrations
+  #   command: ["-path", "/migrations", "-database",  "neo4j://neo4j:7687", "up"]
+  #   links: 
+  #     - neo4j
+  #   depends_on:
+  #     neo4j:
+  #       condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/dev-prom.yaml'
+    ports:
+       - 9090:9090
+    restart: unless-stopped
+    volumes:
+      - ./../metric/dev:/etc/prometheus
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    hostname: jaeger
+    ports:
+      - 16686:16686
+    #   - 4317:4317
+    #   - 4318:4318
+    #   - 14268:14268
+    restart: unless-stopped
+
+  kafka:
+    image: docker.io/bitnami/kafka:3.9
+    ports:
+      - '9094:9094'
+    restart: unless-stopped
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+  panda-console:
+    image: redpandadata/console
+    container_name: panda-console
+    ports:
+      - 3004:8080
+    environment:
+      KAFKA_BROKERS: kafka:9092
+
+  relation-service:
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+      prometheus:
+        condition: service_started
+      kafka:
+        condition: service_started
+    image: ${IMAGE}
+    container_name: relation-service
+    environment:
+      NEO4J_URI: bolt://neo4j:7687
+      RELATION_REPO_DB_NAME: neo4j
+      OTLP_PROBABILITY: 1
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_EXPORTER_OTLP_INSECURE: true
+      LOG_LEVEL: debug
+      KAFKA_BROKERS: kafka:9092
+    ports:
+       - 3001:3001
+ #      - 3002:3002
+    restart: unless-stopped

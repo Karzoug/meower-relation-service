@@ -1,0 +1,1 @@
+CREATE CONSTRAINT user_id_unique FOR (n:User) REQUIRE (n.id) IS UNIQUE
