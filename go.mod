@@ -1,12 +1,11 @@
 module github.com/Karzoug/meower-relation-service
 
-go 1.23.3
-
-toolchain go1.23.4
+go 1.23.4
 
 require (
-	github.com/Karzoug/meower-common-go v1.1.0
+	github.com/Karzoug/meower-common-go v1.2.0
 	github.com/caarlos0/env/v11 v11.2.2
+	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/neo4j/neo4j-go-driver/v5 v5.27.0
 	github.com/rs/xid v1.6.0
@@ -17,11 +16,10 @@ require (
 	golang.org/x/sync v0.10.0
 	google.golang.org/grpc v1.68.1
 	google.golang.org/protobuf v1.35.2
-	github.com/cenkalti/backoff/v4 v4.3.0
 )
 
 require (
-	github.com/beorn7/perks v1.0.1 // indirect	
+	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/confluentinc/confluent-kafka-go/v2 v2.6.1
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -46,6 +44,6 @@ require (
 	golang.org/x/net v0.32.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20241206012308-a4fef0638583 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241206012308-a4fef0638583 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20241209162323-e6fa225c2576 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241209162323-e6fa225c2576 // indirect
 )

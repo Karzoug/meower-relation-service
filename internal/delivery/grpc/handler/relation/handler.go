@@ -41,10 +41,10 @@ func (h handlers) ListFollowings(ctx context.Context, req *gen.ListFollowingsReq
 	}
 
 	token := xid.NilID()
-	if len(req.PageToken) != 0 {
-		tkn, err := xid.FromString(req.PageToken)
+	if len(req.NextPageToken) != 0 {
+		tkn, err := xid.FromString(req.NextPageToken)
 		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, "invalid page token: "+req.PageToken)
+			return nil, status.Error(codes.InvalidArgument, "invalid page token: "+req.NextPageToken)
 		}
 		token = tkn
 	}
@@ -81,10 +81,10 @@ func (h handlers) ListFollowers(ctx context.Context, req *gen.ListFollowersReque
 	}
 
 	token := xid.NilID()
-	if len(req.PageToken) != 0 {
-		tkn, err := xid.FromString(req.PageToken)
+	if len(req.NextPageToken) != 0 {
+		tkn, err := xid.FromString(req.NextPageToken)
 		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, "invalid page token: "+req.PageToken)
+			return nil, status.Error(codes.InvalidArgument, "invalid page token: "+req.NextPageToken)
 		}
 		token = tkn
 	}

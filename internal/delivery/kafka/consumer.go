@@ -13,6 +13,7 @@ import (
 
 	ck "github.com/Karzoug/meower-common-go/kafka"
 	"github.com/Karzoug/meower-common-go/trace/otlp"
+
 	"github.com/Karzoug/meower-relation-service/internal/relation/service"
 	gen "github.com/Karzoug/meower-relation-service/pkg/proto/kafka/user/v1"
 )
